@@ -1,6 +1,8 @@
 import copy
 from logicalObjects import GenericObj, Singleton
 from formulaSimplifier import checkTruthTable
+import sys
+
 freshVariableName="Yns"
 def mymain(input):
     input=input.replace(" ","")
@@ -70,9 +72,9 @@ def grouper(obj1, obj2, type="|"):
     else:
         parentObj.getElements().append(obj2)
     return parentObj
-
-tests = ['!p', 'p&r' , '(p&r)|(!p|!r)', 'p<=>(p&r)']
-for test in tests:
-    mymain(test)
-#mymain('p<=>(p&r)')
-#mymain("a&b")
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <input_string>")
+        sys.exit(1)
+    input_string = sys.argv[1]
+    mymain(input_string)
