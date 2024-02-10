@@ -180,9 +180,3 @@ def ensure_unique(arr):
         if element not in unique_elements:
             unique_elements.append(element)
     return unique_elements
-
-def readSimpleStr(str):
-    if "|" in str or "&" in str:
-        return GenericObj(str)
-    else:
-        return Singleton(str)
