@@ -18,15 +18,12 @@ def mymain(input):
     if totalMap["0"].getType()=="none":
         totalMap["0"].setType("|")
     result=toTseiten(totalMap["0"])
-    input=totalMap['0'].toString()
-    if not '(' in input:
-        input='('+ input+')'
     toPrint=result.toString()
     if not '(' in toPrint:
         toPrint=toPrint+')'
     else:
         toPrint=toPrint[1:]
-    print(f"tseitin{input} = ( {freshVariableName}, {toPrint}")
+    print(f"tseitin({input}) = ( {freshVariableName}, {toPrint}")
 
 def bracketsClosed(index, unfinished, totalMap, input):
     current=totalMap[str(index)]
@@ -36,6 +33,7 @@ def bracketsClosed(index, unfinished, totalMap, input):
     totalMap[str(index)]=totalMap[str(index)].spreadObject(current)
     totalMap[str(index)].addString(input.split(")")[0])
 def toTseiten(input):
+    input.toCNF()
     obj=copy.deepcopy(input)
     obj=checkTruthTable(obj)
     if obj.toString()=="T":
@@ -76,4 +74,5 @@ def grouper(obj1, obj2, type="|"):
 tests = ['!p', 'p&r' , '(p&r)|(!p|!r)', 'p<=>(p&r)']
 for test in tests:
     mymain(test)
+#mymain('p<=>(p&r)')
 #mymain("a&b")

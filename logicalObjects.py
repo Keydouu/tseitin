@@ -1,18 +1,58 @@
 import copy
 class GenericObj:
     def __init__(self, str=""):
+        self.isCNF=False
         self.type="none"
         self.elements=[]
         if "&" in str:
             self.type="&"
         elif "|" in str:
             self.type="|"
+        if "<=>" in str:
+            self.type="<=>"
+        elif "=>" in str:
+            self.type="=>"
+        elif "<=" in str:
+            self.type="<="
         if self.type!="none":
             for s in str.split(self.type):
                 if len(s)>0:
                     self.elements.append(Singleton(s))
         elif len(str)>0:
             self.elements.append(Singleton(str))
+    def removeArrows(self):
+        if self.type=="<=>":
+            if len(self.elements)!=2:
+                print("input error, except random result")
+            a=self.elements[0]
+            b=self.elements[1]
+            self.elements=[]
+            self.type="|"
+            half1=GenericObj()
+            half1.setType("&")
+            half1.getElements().append(copy.deepcopy(a))
+            half1.getElements().append(copy.deepcopy(b))
+            half1.toCNF()
+            self.elements.append(half1)
+            a.negate()
+            b.negate()
+            half2=GenericObj()
+            half2.setType("&")
+            half2.getElements().append(a)
+            half2.getElements().append(b)
+            half2.toCNF()
+            self.elements.append(half2)
+            self.elements=ensure_unique(self.elements)
+        elif self.type=="=>":
+            self.type="|"
+            if len(self.elements)!=2:
+                print("input error, except random result")
+            self.elements[0].negate()
+        elif self.type=="<=":
+            self.type="|"
+            if len(self.elements)!=2:
+                print("input error, except random result")
+            self.elements[1].negate()
     def negate(self):
         for i in self.elements:
             i.negate()
@@ -35,6 +75,7 @@ class GenericObj:
         self.elements.append(obj)
         return self
     def toCNF(self):
+        self.removeArrows()
         for ele in self.elements:
             ele.toCNF()
         newElements=[]
@@ -74,6 +115,9 @@ class GenericObj:
             self.elements=newSelf.getElements()
         else:
             print("unknown error")
+        for ele in self.elements:
+            if len(ele.getElements())>1:
+                ele.setElements(ensure_unique(ele.getElements()))
         self.elements=ensure_unique(self.elements)
     def getType(self):
         return self.type
@@ -101,6 +145,8 @@ class GenericObj:
         return output+")"
     def __str__(self):
         return self.toString()
+    def __repr__(self):
+        return self.toString()
 class Singleton:
     def __init__(self, name):
         self.name = name
@@ -125,6 +171,8 @@ class Singleton:
         return self.name
     def __str__(self):
         return self.name
+    def __repr__(self):
+        return self.name
 
 def ensure_unique(arr):
     unique_elements = []
@@ -132,3 +180,9 @@ def ensure_unique(arr):
         if element not in unique_elements:
             unique_elements.append(element)
     return unique_elements
+
+def readSimpleStr(str):
+    if "|" in str or "&" in str:
+        return GenericObj(str)
+    else:
+        return Singleton(str)
