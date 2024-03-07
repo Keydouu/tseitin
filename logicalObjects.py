@@ -1,4 +1,7 @@
 import copy
+allSingletons=[]
+freshVarsMap={}
+freshVar="Y"
 class GenericObj:
     def __init__(self, str=""):
         self.isCNF=False
@@ -30,16 +33,18 @@ class GenericObj:
             self.type="|"
             half1=GenericObj()
             half1.setType("&")
-            half1.getElements().append(copy.deepcopy(a))
-            half1.getElements().append(copy.deepcopy(b))
+            a2=copy.deepcopy(a)
+            b2=copy.deepcopy(b)
+            half1.getElements().append(a)
+            half1.getElements().append(b)
             half1.toCNF()
             self.elements.append(half1)
-            a.negate()
-            b.negate()
+            a2.negate()
+            b2.negate()
             half2=GenericObj()
             half2.setType("&")
-            half2.getElements().append(a)
-            half2.getElements().append(b)
+            half2.getElements().append(a2)
+            half2.getElements().append(b2)
             half2.toCNF()
             self.elements.append(half2)
             self.elements=ensure_unique(self.elements)
@@ -66,6 +71,12 @@ class GenericObj:
                 self.type="&"
             elif "|" in str:
                 self.type="|"
+            elif "<=>" in str:
+                self.type="<=>"
+            elif "=>" in str:
+                self.type="=>"
+            elif "<=" in str:
+                self.type="<="
             else:
                 print("???")
         for s in str.split(self.type):
@@ -75,9 +86,9 @@ class GenericObj:
         self.elements.append(obj)
         return self
     def toCNF(self):
-        self.removeArrows()
         for ele in self.elements:
             ele.toCNF()
+        self.removeArrows()
         newElements=[]
         if self.type=="&":#simple grouping
             for ele in self.elements:
@@ -119,6 +130,36 @@ class GenericObj:
             if len(ele.getElements())>1:
                 ele.setElements(ensure_unique(ele.getElements()))
         self.elements=ensure_unique(self.elements)
+        cnfSimplifier(self)
+    def toTseiten(self, finalOutput=True):
+        if len(self.elements)==1:
+            return self.elements[0].toTseiten(finalOutput)
+        freshChildren=[]
+        for element in self.elements:
+            freshChildren.append(element.toTseiten(False))
+        self.elements=freshChildren
+        self.defineFreshVar()
+        if not finalOutput:
+            return self.freshVariable
+        FinalObj.toCNF()
+        ans=copy.deepcopy(FinalObj)
+        ans.getElements().append(self.freshVariable)
+        return self.freshVariable, FinalObj, ans
+    def defineFreshVar(self):
+        a = self.toString()
+        if not ( a in freshVarsMap ):
+            self.freshVariable = Singleton(freshVar+str(len(freshVarsMap)+1))
+            freshVarsMap[a] = self.freshVariable
+            tmp = GenericObj()
+            tmp.setType("<=>")
+            tmp.getElements().append(self.freshVariable)
+            tmp.getElements().append(self)
+            FinalObj.getElements().append(tmp)
+        else :
+            self.freshVariable = freshVarsMap[a]
+    def getFreshVarible(self):
+        return self.freshVariable
+    
     def getType(self):
         return self.type
     def getElements(self):
@@ -147,15 +188,41 @@ class GenericObj:
         return self.toString()
     def __repr__(self):
         return self.toString()
+    def getDimacs(self):
+        output="p cnf "+str(len(allSingletons))+" "+str(len(self.elements))
+        for element in self.elements:
+            output = output + "\n" + element.asDimacsClause()+" 0"
+        return output
+    def asDimacsClause(self):
+        output=""
+        for element in self.elements:
+            output = output + " " + element.asDimacsClause()
+        if output != "":
+            output = output[1:]
+        return output
 class Singleton:
     def __init__(self, name):
+        if not (pureName(name) in allSingletons): 
+            allSingletons.append(pureName(name))
+        self.index = allSingletons.index(pureName(name))
         self.name = name
         self.type="singleton"
+    def asDimacsClause(self):
+        if self.name[0]=='!':
+            return str((allSingletons.index(self.name[1:])+1)*-1)
+        else:
+            return str(allSingletons.index(pureName(self.name))+1)
     def getNegatedName(self):
         if self.name[0]=='!':
             return self.name[1:]
         else:
             return "!"+self.name
+    def toTseiten(self, finalOutput=True):
+        if finalOutput:
+            return self, self, self
+        return self
+    def isSimple(self):
+        return (self.name[0]!='!')
     def negate(self):
         if self.name[0]=='!':
             self.name=self.name[1:]
@@ -174,9 +241,43 @@ class Singleton:
     def __repr__(self):
         return self.name
 
+def pureName(name):
+    if name[0]=='!':
+            return name[1:]
+    return name
+
+def setFreshVariableName(name):
+    freshVar=name
 def ensure_unique(arr):
     unique_elements = []
     for element in arr:
         if element not in unique_elements:
             unique_elements.append(element)
+        else:
+            print(f'removing {element.toString()}')
     return unique_elements
+
+FinalObj = GenericObj()
+FinalObj.setType("&")
+
+def cnfSimplifier(cnf):
+    #cnf.toCNF()
+    newFormulaElements=[]
+    for ele in cnf.getElements():
+        if not checkTautologie(ele):
+            newFormulaElements.append(ele)
+    if len(newFormulaElements)==0:
+        return Singleton("T")
+    cnf.setElements(newFormulaElements)
+    for ele in cnf.getElements():
+        if ele.getType()!="singleton":
+            ele.setElements(ensure_unique(ele.getElements()))
+    return cnf
+def checkTautologie(f):
+    if f.getType()=="singleton":
+        return False
+    formulaAsArray=f.toString()[1:-1].split("|")
+    for ele in formulaAsArray:
+        if "!"+ele in formulaAsArray:
+            return True
+    return False
