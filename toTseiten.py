@@ -1,7 +1,7 @@
 import copy
-from logicalObjects import GenericObj, setFreshVariableName
+from logicalObjects import GenericObj
 import sys
-
+freshVar="Y"
 def mymain(input):
     input=input.replace(" ","")
     splited=input.split('(')
@@ -20,11 +20,13 @@ def mymain(input):
                 j-=1
     if totalMap["0"].getType()=="none":
         totalMap["0"].setType("|")
-    fullResult=totalMap["0"].toTseiten()
+    fullResult=totalMap["0"].toTseiten(freshVar)
     toPrint=fullResult.toString()
     if '(' in toPrint:
         toPrint=fullResult.toString()[1:-1]
+    toPrint="T("+input+") = "+toPrint
     print(toPrint)
+    fullResult.getDimacs()
 
 def bracketsClosed(index, unfinished, totalMap, input):
     current=totalMap[str(index)]
@@ -37,9 +39,9 @@ def bracketsClosed(index, unfinished, totalMap, input):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 :
-        print("Usage: python toTseiten.py <input_string> <fresh_variable_name>")
+        print("Usage: python toTseiten.py '<input_string>' '<fresh_variable_name>'")
         sys.exit(1)
     input_string = sys.argv[1]
     if len(sys.argv) > 2:
-        setFreshVariableName(sys.argv[2])
+        freshVar=sys.argv[2]
     mymain(input_string)

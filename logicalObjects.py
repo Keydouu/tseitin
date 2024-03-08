@@ -1,7 +1,7 @@
 import copy
+import os
 allSingletons=[]
 freshVarsMap={}
-freshVar="Y"
 class GenericObj:
     def __init__(self, str=""):
         self.isCNF=False
@@ -131,20 +131,20 @@ class GenericObj:
                 ele.setElements(ensure_unique(ele.getElements()))
         self.elements=ensure_unique(self.elements)
         cnfSimplifier(self)
-    def toTseiten(self, finalOutput=True):
+    def toTseiten(self, freshVar="Y",finalOutput=True):
         if len(self.elements)==1:
-            return self.elements[0].toTseiten(finalOutput)
+            return self.elements[0].toTseiten(freshVar, finalOutput)
         freshChildren=[]
         for element in self.elements:
-            freshChildren.append(element.toTseiten(False))
+            freshChildren.append(element.toTseiten(freshVar, False))
         self.elements=freshChildren
-        self.defineFreshVar()
+        self.defineFreshVar(freshVar)
         if not finalOutput:
             return self.freshVariable
         FinalObj.toCNF()
         FinalObj.getElements().append(self.freshVariable)
         return FinalObj
-    def defineFreshVar(self):
+    def defineFreshVar(self, freshVar):
         a = self.toString()
         if not ( a in freshVarsMap ):
             self.freshVariable = Singleton(freshVar+str(len(freshVarsMap)+1))
@@ -183,6 +183,10 @@ class GenericObj:
         output="p cnf "+str(len(allSingletons))+" "+str(len(self.elements))
         for element in self.elements:
             output = output + "\n" + element.asDimacsClause()+" 0"
+        text_file = open("./output.cnf", "w")
+        text_file.write(output)
+        text_file.close()
+        os.system("minisat -no-pre ./output.cnf")
         return output
     def asDimacsClause(self):
         output=""
@@ -203,9 +207,7 @@ class Singleton:
             return str((allSingletons.index(self.name[1:])+1)*-1)
         else:
             return str(allSingletons.index(pureName(self.name))+1)
-    def toTseiten(self, finalOutput=True):
-        if finalOutput:
-            return self
+    def toTseiten(self, freshVar="Y", finalOutput=True):
         return self
     def negate(self):
         if self.name[0]=='!':
@@ -214,6 +216,13 @@ class Singleton:
             self.name="!"+self.name
     def toCNF(self):
         return
+    def getDimacs(self):
+        output="p cnf 1 1\n" + self.asDimacsClause()+" 0"
+        text_file = open("./output.cnf", "w")
+        text_file.write(output)
+        text_file.close()
+        os.system("minisat -no-pre ./output.cnf")
+        return output
     def getType(self):
         return self.type
     def getElements(self):
@@ -230,8 +239,6 @@ def pureName(name):
             return name[1:]
     return name
 
-def setFreshVariableName(name):
-    freshVar=name
 def ensure_unique(arr):
     unique_elements = []
     for element in arr:
