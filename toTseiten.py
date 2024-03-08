@@ -1,11 +1,10 @@
 import copy
-from logicalObjects import GenericObj, Singleton, setFreshVariableName
+from logicalObjects import GenericObj, setFreshVariableName
 import sys
 
 def mymain(input):
     input=input.replace(" ","")
     splited=input.split('(')
-    print(splited)
     totalMap={}
     unfinished=[]
     for i in range(len(splited)):
@@ -21,13 +20,11 @@ def mymain(input):
                 j-=1
     if totalMap["0"].getType()=="none":
         totalMap["0"].setType("|")
-    freshVariableName, result, fullResult=totalMap["0"].toTseiten()
-    toPrint=result.toString()
-    if not '(' in toPrint:
-        toPrint=toPrint+')'
-    else:
-        toPrint=toPrint[1:]
-    print(fullResult.toString()[1:-1])
+    fullResult=totalMap["0"].toTseiten()
+    toPrint=fullResult.toString()
+    if '(' in toPrint:
+        toPrint=fullResult.toString()[1:-1]
+    print(toPrint)
 
 def bracketsClosed(index, unfinished, totalMap, input):
     current=totalMap[str(index)]

@@ -142,9 +142,8 @@ class GenericObj:
         if not finalOutput:
             return self.freshVariable
         FinalObj.toCNF()
-        ans=copy.deepcopy(FinalObj)
-        ans.getElements().append(self.freshVariable)
-        return self.freshVariable, FinalObj, ans
+        FinalObj.getElements().append(self.freshVariable)
+        return FinalObj
     def defineFreshVar(self):
         a = self.toString()
         if not ( a in freshVarsMap ):
@@ -219,7 +218,7 @@ class Singleton:
             return "!"+self.name
     def toTseiten(self, finalOutput=True):
         if finalOutput:
-            return self, self, self
+            return self
         return self
     def isSimple(self):
         return (self.name[0]!='!')
@@ -253,15 +252,12 @@ def ensure_unique(arr):
     for element in arr:
         if element not in unique_elements:
             unique_elements.append(element)
-        else:
-            print(f'removing {element.toString()}')
     return unique_elements
 
 FinalObj = GenericObj()
 FinalObj.setType("&")
 
 def cnfSimplifier(cnf):
-    #cnf.toCNF()
     newFormulaElements=[]
     for ele in cnf.getElements():
         if not checkTautologie(ele):
