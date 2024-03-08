@@ -1,5 +1,5 @@
 return tseitin of a logical formula.
 Usage: python script.py <input_string>
 examples :
+![image](https://github.com/Keydouu/tseitin/assets/63008369/929b38a3-c440-4021-961a-c78da6bdfc9c)
 
-![example](https://github.com/Keydouu/tseitin/assets/63008369/5ec62d4f-ba04-47fe-b8c2-08f3b9bbebfb)
