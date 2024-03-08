@@ -156,20 +156,12 @@ class GenericObj:
             FinalObj.getElements().append(tmp)
         else :
             self.freshVariable = freshVarsMap[a]
-    def getFreshVarible(self):
-        return self.freshVariable
-    
     def getType(self):
         return self.type
     def getElements(self):
         return self.elements
     def setElements(self, newElements):
         self.elements = newElements
-    def contain(self, input):
-        for ele in self.elements:
-            if ele.toString()==input:
-                return True
-        return False
     def setType(self, newType):
         self.type=newType
     def toString(self):
@@ -211,17 +203,10 @@ class Singleton:
             return str((allSingletons.index(self.name[1:])+1)*-1)
         else:
             return str(allSingletons.index(pureName(self.name))+1)
-    def getNegatedName(self):
-        if self.name[0]=='!':
-            return self.name[1:]
-        else:
-            return "!"+self.name
     def toTseiten(self, finalOutput=True):
         if finalOutput:
             return self
         return self
-    def isSimple(self):
-        return (self.name[0]!='!')
     def negate(self):
         if self.name[0]=='!':
             self.name=self.name[1:]

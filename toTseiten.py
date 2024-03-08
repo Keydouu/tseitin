@@ -37,7 +37,7 @@ def bracketsClosed(index, unfinished, totalMap, input):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 :
-        print("Usage: python script.py <input_string> <fresh_variable_name>")
+        print("Usage: python toTseiten.py <input_string> <fresh_variable_name>")
         sys.exit(1)
     input_string = sys.argv[1]
     if len(sys.argv) > 2:
